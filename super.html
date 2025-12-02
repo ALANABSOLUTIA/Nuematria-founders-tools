@@ -1,0 +1,622 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Nuematria™ Super Diagnostic — One File Tool</title>
+<style>
+  :root{
+    --bg:#ffffff;      /* frame */
+    --panel:#0d0d11;   /* calculator panel */
+    --accent:#ff9b42;  /* orange */
+    --panel-2:#141418;
+    --text-light:#f7f7f7;
+    --text-dark:#000;
+  }
+  html,body{height:100%; margin:0; background:var(--bg); font-family: "Segoe UI", Roboto, Arial, sans-serif;}
+  .wrap{max-width:980px; margin:32px auto; padding:18px;}
+  header{display:flex;align-items:center;gap:16px}
+  h1{margin:0; color:var(--accent); text-shadow:0 0 8px rgba(255,106,0,0.25)}
+  .panel{background:var(--panel); color:var(--text-light); border-radius:12px; padding:18px; box-shadow:0 6px 30px rgba(0,0,0,0.12)}
+  .row{display:flex; gap:12px; margin-top:12px}
+  .col{flex:1; min-width:0}
+  label{display:block; font-size:13px; color:#bfbfbf; margin-bottom:6px}
+  input[type=text], textarea, select, input[type=number]{
+    width:100%; padding:10px; border-radius:8px; border:1px solid #222; background:#15151a; color:var(--text-light);
+    box-sizing:border-box; font-size:14px;
+  }
+  textarea{min-height:80px; resize:vertical}
+  .btn{
+    display:inline-block; width:100%; padding:12px; border-radius:8px; border:none; cursor:pointer;
+    font-weight:600; color:#000; background:var(--accent); box-shadow:0 6px 18px rgba(255,154,77,0.12);
+  }
+  .btn.secondary{background:#fff; color:#222; box-shadow:none}
+  .controls{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
+  .result-frame{margin-top:16px; background:#fff; color:var(--text-dark); border-left:6px solid var(--accent); padding:18px; border-radius:8px; min-height:160px; white-space:pre-wrap; font-size:15px}
+  .extras-toggle{background:#000;color:#fff;padding:10px;border-radius:8px;border:none;cursor:pointer}
+  .extras{display:none; margin-top:12px; background:#fff;color:#000;padding:12px;border-radius:8px}
+  .small{font-size:13px;color:#666;margin-top:8px}
+  footer{margin-top:18px;color:#777;font-size:13px}
+  @media(max-width:720px){
+    .controls{grid-template-columns:1fr}
+    header{flex-direction:column; align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Nuematria™ Super Diagnostic (Founders)</h1>
+    <div style="margin-left:auto;color:#666;font-size:14px">v1.0 — In-house</div>
+  </header>
+
+  <div class="panel" id="panel">
+    <!-- INPUTS -->
+    <div class="row">
+      <div class="col">
+        <label>Client Full Name (birth)</label>
+        <input id="in_name" type="text" placeholder="Full birth name" />
+      </div>
+      <div class="col">
+        <label>Birthdate (YYYY-MM-DD)</label>
+        <input id="in_birthdate" type="text" placeholder="1970-12-18" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Birth Time (optional, HH:MM)</label>
+        <input id="in_time" type="text" placeholder="09:30" />
+      </div>
+      <div class="col">
+        <label>Birth Location (optional)</label>
+        <input id="in_loc" type="text" placeholder="City, Country" />
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Client Question / Focus (optional)</label>
+      <input id="in_query" type="text" placeholder="e.g. 'Why do I repeat relationships?'" />
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn" onclick="computeAll()">CALCULATE SOUL STORY</button>
+      <button class="btn secondary" onclick="resetAll()">RESET</button>
+    </div>
+
+    <!-- Additional Info (overrides) -->
+    <div style="margin-top:12px">
+      <button class="extras-toggle" onclick="toggleExtras()">➕ Add Additional Info (optional)</button>
+      <div id="extras" class="extras" aria-hidden="true">
+        <label>Clarity Score (0–100)</label>
+        <input id="extra_clarity" type="number" min="0" max="100" placeholder="e.g. 82" />
+
+        <label style="margin-top:8px">Override Priority</label>
+        <select id="extra_priority"><option value="">—</option><option>Low</option><option>Medium</option><option>High</option></select>
+
+        <label style="margin-top:8px">Narrative Injection (Alan's voice)</label>
+        <textarea id="extra_narrative" placeholder="Add a short paragraph to inject into the report"></textarea>
+
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label>Soul Color Frequency</label>
+            <select id="extra_color">
+              <option value="">—</option><option>Red</option><option>Orange</option><option>Yellow</option>
+              <option>Green</option><option>Blue</option><option>Indigo</option><option>Violet</option><option>White/Gold</option><option>Shadow Black</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Dimensional Resonance (1–12)</label>
+            <input id="extra_dimension" type="number" min="1" max="12" />
+          </div>
+        </div>
+
+        <label style="margin-top:8px">Guide / Entity Presence Notes</label>
+        <textarea id="extra_guides" placeholder="Optional notes about guides, presence, or impressions"></textarea>
+
+      </div>
+    </div>
+
+    <!-- Result & helpers -->
+    <div class="row" style="margin-top:16px">
+      <div style="flex:1">
+        <div id="result" class="result-frame">Results will appear here after you run the calculator.</div>
+        <div class="small">Plain text output — easy to copy into your PDF builder or notes.</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div style="flex:1">
+        <button class="btn" onclick="copyToClipboard()">COPY TO CLIPBOARD</button>
+      </div>
+      <div style="flex:1">
+        <button class="btn secondary" onclick="downloadTxt()">DOWNLOAD .TXT</button>
+      </div>
+    </div>
+
+    <div class="small" style="margin-top:12px">Tip: Use the Additional Info to augment the generated report (optional). Your manual notes are preserved in `alan_overrides` inside the JSON export.</div>
+
+  </div>
+
+  <footer>
+    <div style="margin-top:6px">Built for Nuematria™ — Founders Only. Keep your methods private.</div>
+  </footer>
+</div>
+
+<script>
+/* =============================
+   MASTER STATE & DATA (clean)
+   ============================= */
+const N = {
+  input: { name:"", birthdate:"", time:"", location:"", query:"" },
+  numerology: { pythag: null, pythReduced: null, chaldean: null, ordinal: null, lifePath:null },
+  triad: { number:null, meaning:"" },
+  hero: { number:null, archetype:"", family:"", meaning:"", alignmentScore:0 },
+  matrix: { grid:null, notes:"(matrix calculation not run)" },
+  astrology: { stub:true, sun:"", moon:"", rising:"", aspects:[] },
+  tarot: { card:"", meaning:"" },
+  pastLife: { theme:"", description:"" },
+  meta: { clarity:null, priority:null, narrativeInjection:"", soulColor:"", dimension:null, guideNotes:"" },
+  overrides: { intuitive_impressions:"", psychic_notes:"", energetic_reading:"", manual_adjustments:"" },
+  output: { finalText:"", json:{ } }
+};
+
+/* =============================
+   STATIC DATA (triads, heroes, meanings)
+   Keep text concise — editable here
+   ============================= */
+const DATA = {
+  // Triad meanings (core frequency)
+  triads: {
+    1: "Initiator — bold, pioneering, self-starter.",
+    2: "Peacemaker — receptive, relational, cooperative.",
+    3: "Creative Communicator — expressive and social.",
+    4: "Architect/Builder — stable, practical, orderly.",
+    5: "Explorer/Change Agent — adventurous, curious.",
+    6: "Caretaker — responsible, nurturing, artistic service.",
+    7: "Seeker / Mystic — inward, analytical, spiritual.",
+    8: "Powerhouse — manifestor, authority, executive force.",
+    9: "Sage / Humanitarian — completion, wisdom, service.",
+    11: "Master Intuitive — visionary, messenger role.",
+    22: "Master Builder — large-scale manifestor and organizer.",
+    33: "Master Healer — compassionate, service amplified."
+  },
+
+  // Families + 36 hero archetypes (36 entries: 4 families × 9)
+  heroFamilies: [
+    { family:"Primordial", heroes:[
+      {label:"Primordial Creator", code:1},{label:"Primordial Mystic", code:2},{label:"Primordial Warrior", code:3},
+      {label:"Primordial Guide", code:4},{label:"Primordial Rebel", code:5},{label:"Primordial Guardian", code:6},
+      {label:"Primordial Seer", code:7},{label:"Primordial Force", code:8},{label:"Primordial Sage", code:9}
+    ]},
+    { family:"Radiant", heroes:[
+      {label:"Radiant Creator", code:1},{label:"Radiant Mystic", code:2},{label:"Radiant Warrior", code:3},
+      {label:"Radiant Guide", code:4},{label:"Radiant Rebel", code:5},{label:"Radiant Guardian", code:6},
+      {label:"Radiant Seer", code:7},{label:"Radiant Force", code:8},{label:"Radiant Sage", code:9}
+    ]},
+    { family:"Shadow", heroes:[
+      {label:"Shadow Creator", code:1},{label:"Shadow Mystic", code:2},{label:"Shadow Warrior", code:3},
+      {label:"Shadow Guide", code:4},{label:"Shadow Rebel", code:5},{label:"Shadow Guardian", code:6},
+      {label:"Shadow Seer", code:7},{label:"Shadow Force", code:8},{label:"Shadow Sage", code:9}
+    ]},
+    { family:"Ascended", heroes:[
+      {label:"Ascended Creator", code:1},{label:"Ascended Mystic", code:2},{label:"Ascended Warrior", code:3},
+      {label:"Ascended Guide", code:4},{label:"Ascended Rebel", code:5},{label:"Ascended Guardian", code:6},
+      {label:"Ascended Seer", code:7},{label:"Ascended Force", code:8},{label:"Ascended Sage", code:9}
+    ]}
+  ],
+
+  // short house meanings used in narrative
+  houseMeaning: {
+    Primordial: "raw, ancient, instinctual — a foundational pattern.",
+    Radiant: "bright, expressive, outward-impacting energy.",
+    Shadow: "deep, transformative, formative through challenge.",
+    Ascended: "refined, wise, integrated and teacher-oriented."
+  },
+
+  // soul colors (simple map)
+  soulColors: {
+    Red:"root energy, action, survival",
+    Orange:"creative will, vitality",
+    Yellow:"personal power, clarity",
+    Green:"healing, growth, balance",
+    Blue:"communication, truth",
+    Indigo:"intuitive sight, inner vision",
+    Violet:"spirituality, dissolution",
+    "White/Gold":"high-frequency clarity, connection",
+    "Shadow Black":"deep shadow, unseen work"
+  },
+
+  // placeholder tarot (use your deck mapping later)
+  tarot: {
+    default: "The Fool — new beginnings (placeholder)"
+  },
+
+  // past-life theme stubs
+  pastLifeThemes: {
+    default: "A soul who served in roles of leadership and initiation across lifetimes — echoes of authority, building, and public responsibility."
+  }
+};
+
+/* =============================
+   UTIL: Numerology maps
+   Pythagorean map (A=1..I=9, J=1..R=9, S=1..Z=8)
+   ============================= */
+const PY_MAP = {
+  A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,I:9,
+  J:1,K:2,L:3,M:4,N:5,O:6,P:7,Q:8,R:9,
+  S:1,T:2,U:3,V:4,W:5,X:6,Y:7,Z:8
+};
+
+/* =============================
+   MINI-MODULES: small, purpose-specific
+   ============================= */
+
+/* safe uppercase & strip */
+function normText(s){ return (s||"").toString().trim().toUpperCase(); }
+
+/* compute sums using Pythagorean */
+function computePythag(text){
+  text = normText(text);
+  let sum = 0;
+  for(let ch of text){
+    if(PY_MAP[ch]) sum += PY_MAP[ch];
+  }
+  return sum;
+}
+
+/* simple ordinal sum A=1..Z=26 */
+function computeOrdinal(text){
+  text = normText(text);
+  let sum = 0;
+  for(let ch of text){
+    let code = ch.charCodeAt(0);
+    if(code >= 65 && code <= 90) sum += code - 64;
+  }
+  return sum;
+}
+
+/* reduce but preserve masters */
+function reduceKeepMasters(n){
+  if(!Number.isFinite(n)) return null;
+  if([11,22,33].includes(n)) return n;
+  while(n > 9) n = String(n).split("").map(Number).reduce((a,b)=>a+b,0);
+  return n;
+}
+
+/* compute triad: pythagorean reduced + ord + basic chaldean approx (simple map) */
+/* Note: Chaldean full mapping can be added later; placeholder uses a quick mapping */
+const CH_MAP = {
+  A:1,B:2,C:3,D:4,E:5,F:8,G:3,H:5,I:1,J:1,K:2,L:3,M:4,N:5,O:7,P:8,Q:1,R:2,S:3,T:4,U:6,V:6,W:6,X:5,Y:1,Z:7
+};
+function computeChaldean(text){
+  text = normText(text);
+  let sum = 0;
+  for(let ch of text){
+    if(CH_MAP[ch]) sum += CH_MAP[ch];
+  }
+  return sum;
+}
+
+/* =============================
+   CORE: computeNumerology
+   writes to N.numerology
+   ============================= */
+function computeNumerology(){
+  const name = N.input.name;
+  const pyth = computePythag(name);
+  const pythReduced = reduceKeepMasters(pyth);
+  const ch = computeChaldean(name);
+  const ord = computeOrdinal(name);
+
+  N.numerology.pythag = pyth;
+  N.numerology.pythReduced = pythReduced;
+  N.numerology.chaldean = ch;
+  N.numerology.ordinal = ord;
+
+  // simple life path from birthdate (if provided)
+  let lp = null;
+  try {
+    if(N.input.birthdate){
+      const digits = N.input.birthdate.replace(/-/g,"").split("").map(Number);
+      let s = digits.reduce((a,b)=>a+b,0);
+      lp = reduceKeepMasters(s);
+    }
+  } catch(e){ lp = null; }
+  N.numerology.lifePath = lp;
+}
+
+/* =============================
+   CORE: computeTriad
+   ============================= */
+function computeTriad(){
+  const reduced = N.numerology.pythReduced;
+  N.triad.number = reduced;
+  N.triad.meaning = DATA.triads[reduced] || "Core frequency: " + (reduced || "unknown");
+}
+
+/* =============================
+   CORE: computeHero (36 mapping)
+   Choose family index deterministically by using ordinal % 4
+   ============================= */
+function computeHero(){
+  const code = N.triad.number || 1;
+  // family selector using ordinal mod 4 (0..3)
+  const ord = N.numerology.ordinal || 0;
+  const famIndex = Math.abs(ord % 4); // 0..3
+  const family = DATA.heroFamilies[famIndex];
+  // find first hero in that family whose code matches the triad number
+  const hero = family.heroes.find(h => h.code === code) || family.heroes[0];
+  N.hero.number = code;
+  N.hero.archetype = hero.label;
+  N.hero.family = family.family;
+  N.hero.meaning = `${hero.label} — ${DATA.triads[code] || ""}`;
+  N.hero.alignmentScore = 0.75; // placeholder confidence
+}
+
+/* =============================
+   MATRIX (light placeholder)
+   You can extend with full matrix logic later
+   ============================= */
+function computeMatrix(){
+  // naive matrix from birthdate digits if provided
+  let grid = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+  if(N.input.birthdate){
+    const digits = N.input.birthdate.replace(/-/g,"").split("");
+    for(let d of digits){
+      if(grid[d] !== undefined) grid[d] += 1;
+    }
+  }
+  N.matrix.grid = grid;
+  // quick notes
+  const missing = Object.keys(grid).filter(k => grid[k] === 0);
+  N.matrix.notes = `Digit counts recorded. Missing: ${missing.join(", ") || "none"}.`;
+}
+
+/* =============================
+   ASTRO (stub) - replace with real engine later
+   ============================= */
+function computeAstrology(){
+  // placeholder behaviour
+  N.astrology.sun = "Sagittarius (placeholder)";
+  N.astrology.moon = "Cancer (placeholder)";
+  N.astrology.rising = "Leo (placeholder)";
+  N.astrology.aspects = ["Moon-Saturn square (placeholder)"];
+}
+
+/* =============================
+   TAROT (stub)
+   ============================= */
+function computeTarot(){
+  N.tarot.card = "The Fool (placeholder)";
+  N.tarot.meaning = DATA.tarot.default;
+}
+
+/* =============================
+   PAST-LIFE RESONANCE (simple rules)
+   ============================= */
+function computePastLife(){
+  // naive heuristics
+  const triad = N.triad.number;
+  let theme = DATA.pastLifeThemes.default;
+  if(triad === 8) theme = "Strong leader/authority echoes; past roles in public life and leadership.";
+  else if(triad === 7) theme = "Mystic/teacher echoes; previous lifetimes in contemplative orders.";
+  else if(triad === 9) theme = "Humanitarian echoes; service across many lives.";
+  N.pastLife.theme = theme;
+  N.pastLife.description = theme + " (auto-generated).";
+}
+
+/* =============================
+   META from extras
+   ============================= */
+function collectExtras(){
+  const clarity = parseInt(document.getElementById("extra_clarity").value) || null;
+  const priority = document.getElementById("extra_priority").value || null;
+  const narrative = document.getElementById("extra_narrative").value || "";
+  const color = document.getElementById("extra_color").value || "";
+  const dimension = parseInt(document.getElementById("extra_dimension").value) || null;
+  const guides = document.getElementById("extra_guides").value || "";
+  N.meta.clarity = clarity; N.meta.priority = priority; N.meta.narrativeInjection = narrative;
+  N.meta.soulColor = color; N.meta.dimension = dimension; N.meta.guideNotes = guides;
+  // also copy into overrides for PDF
+  N.overrides.intuitive_impressions = narrative;
+  N.overrides.energetic_reading = color ? `${color} — ${DATA.soulColors[color] || ""}` : "";
+  N.overrides.manual_adjustments = priority ? `Override priority: ${priority}` : "";
+}
+
+/* =============================
+   BUILD final narrative: human, plain text
+   ============================= */
+function buildNarrative(){
+  // header
+  const name = N.input.name || "Unknown";
+  let text = "";
+  text += "✨ NUEMATRIA™ SOUL STORY — (Founders Internal) ✨\n\n";
+  text += `Client: ${name}\n`;
+  if(N.input.birthdate) text += `Birth: ${N.input.birthdate} ${N.input.time||""} ${N.input.location||""}\n`;
+  if(N.input.query) text += `Focus: ${N.input.query}\n`;
+  text += "\n---\n\n";
+
+  // numerology
+  text += "Numerology\n";
+  text += "----------\n";
+  text += `Pythagorean sum: ${N.numerology.pythag || "n/a"} (core frequency: ${N.numerology.pythReduced || "n/a"})\n`;
+  if(N.numerology.lifePath) text += `Life Path: ${N.numerology.lifePath}\n`;
+  text += `Chaldean: ${N.numerology.chaldean || "n/a"}  Ordinal: ${N.numerology.ordinal || "n/a"}\n\n`;
+
+  // triad & hero
+  text += "Nuematria Triad & Archetype\n";
+  text += "--------------------------\n";
+  text += `Triad/Core Frequency: ${N.triad.number || "n/a"} — ${N.triad.meaning}\n`;
+  text += `Assigned Family: ${N.hero.family}  |  Archetype: ${N.hero.archetype}\n`;
+  text += `${N.hero.meaning}\n\n`;
+
+  // matrix
+  text += "Matrix Birth Square\n";
+  text += "-------------------\n";
+  text += `${Object.entries(N.matrix.grid||{}).map(kv=>kv[0]+":"+kv[1]).join("  ")}\n`;
+  text += `${N.matrix.notes}\n\n`;
+
+  // astro
+  text += "Astrology (quick)\n";
+  text += "-----------------\n";
+  text += `Sun: ${N.astrology.sun}  Moon: ${N.astrology.moon}  Rising: ${N.astrology.rising}\n`;
+  if(N.astrology.aspects && N.astrology.aspects.length) text += `Aspects: ${N.astrology.aspects.join("; ")}\n\n`;
+
+  // tarot
+  text += "Tarot (quick)\n";
+  text += "-------------\n";
+  text += `${N.tarot.card} — ${N.tarot.meaning}\n\n`;
+
+  // past life
+  text += "Past Life Resonance\n";
+  text += "-------------------\n";
+  text += `${N.pastLife.theme}\n\n`;
+
+  // meta & overrides
+  text += "Additional Notes & Overrides\n";
+  text += "----------------------------\n";
+  if(N.meta.clarity) text += `Clarity Score: ${N.meta.clarity}\n`;
+  if(N.meta.soulColor) text += `Soul Color Frequency: ${N.meta.soulColor} — ${DATA.soulColors[N.meta.soulColor]||""}\n`;
+  if(N.meta.dimension) text += `Dimensional Resonance: ${N.meta.dimension}\n`;
+  if(N.meta.guideNotes) text += `Guide Notes: ${N.meta.guideNotes}\n`;
+  if(N.overrides.intuitive_impressions) text += `\nAlan's Intuitive Impressions:\n${N.overrides.intuitive_impressions}\n`;
+  if(N.overrides.energetic_reading) text += `\nEnergetic Reading:\n${N.overrides.energetic_reading}\n`;
+  if(N.overrides.manual_adjustments) text += `\nManual Adjustments:\n${N.overrides.manual_adjustments}\n`;
+
+  // closing human paragraph
+  text += "\n---\n";
+  text += "Interpretive Summary\n";
+  text += "--------------------\n";
+  text += `This reading frames a soul-pattern (the ${N.hero.archetype}) that carries specific strengths and lessons. Use it as a map, not a label — work with the parts you recognise and let the rest reveal through practice.\n`;
+
+  // inject custom narrative if present
+  if(N.meta.narrativeInjection) {
+    text += "\nAlan's Injected Narrative:\n";
+    text += N.meta.narrativeInjection + "\n";
+  }
+
+  N.output.finalText = text;
+  // create JSON export
+  N.output.json = {
+    input:N.input,
+    numerology:N.numerology,
+    triad:N.triad,
+    hero:N.hero,
+    matrix:N.matrix,
+    astrology:N.astrology,
+    tarot:N.tarot,
+    pastLife:N.pastLife,
+    meta:N.meta,
+    overrides:N.overrides,
+    finalText:text
+  };
+}
+
+/* =============================
+   RENDER and UX functions
+   ============================= */
+function renderResult(){
+  document.getElementById("result").innerText = N.output.finalText || "No output yet.";
+}
+
+/* assemble data: read inputs and call compute series */
+function computeAll(){
+  // read inputs
+  N.input.name = document.getElementById("in_name").value.trim();
+  N.input.birthdate = document.getElementById("in_birthdate").value.trim();
+  N.input.time = document.getElementById("in_time").value.trim();
+  N.input.location = document.getElementById("in_loc").value.trim();
+  N.input.query = document.getElementById("in_query").value.trim();
+
+  // core pipeline
+  computeNumerology();
+  computeTriad();
+  computeHero();
+  computeMatrix();
+  computeAstrology();
+  computeTarot();
+  computePastLife();
+  collectExtras();
+  buildNarrative();
+  applyOverrides(); // adds alan overrides if present
+  renderResult();
+}
+
+/* apply override pipeline (post-narrative injection) */
+function applyOverrides(){
+  // copy narrative injection into overrides if present
+  if(N.meta.narrativeInjection && !N.overrides.intuitive_impressions){
+    N.overrides.intuitive_impressions = N.meta.narrativeInjection;
+  }
+  // append to final text
+  if(N.overrides.intuitive_impressions) N.output.finalText += `\n\n[Intuitive Note]\n${N.overrides.intuitive_impressions}\n`;
+  if(N.overrides.psychic_notes) N.output.finalText += `\n\n[Psychic Notes]\n${N.overrides.psychic_notes}\n`;
+  if(N.overrides.energetic_reading) N.output.finalText += `\n\n[Energetic Reading]\n${N.overrides.energetic_reading}\n`;
+  if(N.overrides.manual_adjustments) N.output.finalText += `\n\n[Manual Adjustments]\n${N.overrides.manual_adjustments}\n`;
+}
+
+/* reset everything */
+function resetAll(){
+  // clear UI
+  document.getElementById("in_name").value = "";
+  document.getElementById("in_birthdate").value = "";
+  document.getElementById("in_time").value = "";
+  document.getElementById("in_loc").value = "";
+  document.getElementById("in_query").value = "";
+  document.getElementById("extra_clarity").value = "";
+  document.getElementById("extra_priority").value = "";
+  document.getElementById("extra_narrative").value = "";
+  document.getElementById("extra_color").value = "";
+  document.getElementById("extra_dimension").value = "";
+  document.getElementById("extra_guides").value = "";
+  // clear state
+  for(const k in N) if(N.hasOwnProperty(k)) {
+    if(typeof N[k] === 'object') {
+      // reset nested objects in a minimal way (preserve structure)
+      Object.keys(N[k]).forEach(key => N[k][key] = (Array.isArray(N[k][key]) ? [] : ""));
+    }
+  }
+  // preserve nested scalar placeholders
+  N.numerology = { pythag:null, pythReduced:null, chaldean:null, ordinal:null, lifePath:null };
+  N.triad = { number:null, meaning:"" };
+  N.hero = { number:null, archetype:"", family:"", meaning:"", alignmentScore:0 };
+  N.matrix = { grid:null, notes:"(matrix calculation not run)" };
+  N.astrology = { stub:true, sun:"", moon:"", rising:"", aspects:[] };
+  N.tarot = { card:"", meaning:"" };
+  N.pastLife = { theme:"", description:"" };
+  N.meta = { clarity:null, priority:null, narrativeInjection:"", soulColor:"", dimension:null, guideNotes:"" };
+  N.overrides = { intuitive_impressions:"", psychic_notes:"", energetic_reading:"", manual_adjustments:"" };
+  N.output = { finalText:"", json:{} };
+  document.getElementById("result").innerText = "Results will appear here after you run the calculator.";
+}
+
+/* copy & download helpers */
+function copyToClipboard(){
+  const txt = N.output.finalText || document.getElementById("result").innerText;
+  if(!txt) return alert("Nothing to copy.");
+  navigator.clipboard.writeText(txt).then(()=>alert("Copied to clipboard."));
+}
+function downloadTxt(){
+  const txt = N.output.finalText || document.getElementById("result").innerText;
+  if(!txt) return alert("Nothing to download.");
+  const blob = new Blob([txt], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = (N.input.name? N.input.name.replace(/\s+/g,'_') : 'nuematria_reading') + '.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* extras toggle */
+function toggleExtras(){
+  const el = document.getElementById("extras");
+  const show = el.style.display === "block";
+  el.style.display = show ? "none" : "block";
+  el.setAttribute("aria-hidden", show ? "true" : "false");
+}
+</script>
+</body>
+</html>
