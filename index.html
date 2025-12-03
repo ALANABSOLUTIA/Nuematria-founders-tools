@@ -115,7 +115,46 @@ html, body {
 /* Header remains purple section on white background */
 header {
   background: #ffffff !important;
+}  
+  /* FINAL FORCE-WHITE OVERRIDE (place at the VERY BOTTOM of <style>) */
+body, html {
+    background: #ffffff !important;
 }
+
+.wrap {
+    background: #ffffff !important;
+}
+
+.card {
+    background: #ffffff !important;
+    border: 1px solid #e5e5e5 !important;
+    box-shadow: none !important;
+    color: #222 !important;
+}
+
+/* Text fixes */
+.card, .output, .pill, .section-title, .small {
+    color: #222 !important;
+}
+
+/* Calculator panel inner squares */
+.output {
+    background: #f8f8ff !important;
+    border: 1px solid #dadada !important;
+}
+
+.pill {
+    background: #eef1ff !important;
+    color: #333 !important;
+}
+
+/* Remove purple gradients */
+.logo {
+    background: #007bff !important;
+    color: white !important;
+    box-shadow: none !important;
+}
+
 
 </style>
 </head>
@@ -569,5 +608,6 @@ document.addEventListener('DOMContentLoaded', ()=> {
 </script>
 </body>
 </html>
+
 
 
