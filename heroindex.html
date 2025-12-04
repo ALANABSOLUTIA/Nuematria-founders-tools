@@ -7,7 +7,109 @@ All Rights Reserved. Unauthorized replication or derivative use prohibited.--!>
 <meta charset="UTF-8">
 <title>Nuematria™ Hero Archetype Detector</title>
 
-<style>
+<style>/* -----------------------------------------
+   HERO CALCULATOR — RESPONSIVE FIX PACK
+   Scales perfectly on all phones + desktops
+------------------------------------------*/
+
+/* Main wrapper centered */
+.hero-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Calculator container */
+.hero-calc-box {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  width: 100%;
+}
+
+/* Prevent text overflowing on narrow screens */
+.hero-calc-box input,
+.hero-calc-box select {
+  font-size: 1rem;
+}
+
+/* Title scaling */
+.hero-title { 
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Center buttons always */
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Make output area scroll nicely on phones */
+.hero-output {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: hidden;
+}
+
+
+/* -----------------------------------------
+   MEDIA QUERIES — scaling fixes
+------------------------------------------*/
+
+/* TABLET screens */
+@media (max-width: 992px) {
+  .hero-title {
+    font-size: 1.8rem;
+  }
+  .hero-calc-box {
+    padding: 22px;
+  }
+}
+
+/* MOBILE screens */
+@media (max-width: 768px) {
+  .hero-wrapper {
+    padding: 15px;
+  }
+
+  .hero-title {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+
+  .hero-calc-box {
+    padding: 18px;
+  }
+
+  .hero-buttons button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+  }
+}
+
+/* VERY SMALL PHONES (iPhone SE, Android Mini) */
+@media (max-width: 480px) {
+
+  .hero-title {
+    font-size: 1.4rem;
+  }
+
+  .hero-calc-box {
+    padding: 15px;
+  }
+
+  input, select {
+    font-size: 0.95rem !important;
+  }
+}
+
     body {
         font-family: "Segoe UI", Arial, sans-serif;
         background: #ffffff; /* <-- White background frame */
@@ -284,9 +386,20 @@ function resetForm() {
     document.getElementById("output").innerText = "";
 }
 </script>
+<div class="hero-wrapper">
+  <div class="hero-calc-box">
+      <!-- your calculator UI here -->
+  </div>
+</div>
+<div class="hero-buttons">
+   <button class="btn btn-primary">Generate</button>
+   <button class="btn btn-secondary">Clear</button>
+</div>
+<div class="hero-output" id="outputBox"></div>
 
 </body>
 </html>
+
 
 
 
